@@ -1,2 +1,512 @@
-<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" href="../milestone-1/m1-01-hero-many-futures.png" as="image"/><link rel="preload" href="../milestone-1/m1-02-machine-learning.png" as="image"/><link rel="preload" href="../milestone-1/m1-03-loss.png" as="image"/><link rel="preload" href="../milestone-1/m1-04-multimodal-inputs.png" as="image"/><link rel="preload" href="../milestone-1/m1-05-latent-workshop.png" as="image"/><link rel="preload" href="../milestone-1/m1-06-cumulative-scene.png" as="image"/><link rel="stylesheet" href="../assets/site.css" data-precedence="vite-rsc/importer-resources"/><title>From Pixels to Worlds — Milestone 1</title><meta name="description" content="A visual, intuition-first journey from one frozen image to the learned representations an image-to-video system needs before generation begins."/><link rel="shortcut icon" href="../favicon.svg"/><link rel="icon" href="../favicon.svg"/>
-</head><body><main class="reader-page" id="reader-top"><header class="reader-header"><a href="../" class="reader-brand"><span class="mark"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-scan-line" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M7 12h10"></path></svg></span><span>From Pixels to Worlds</span></a><span>Milestone 1 · From frame to working scene</span><a href="#recap">Jump to recap ↓</a></header><div class="reader-shell"><aside class="reader-nav" aria-label="Milestone chapters"><p>YOUR PATH</p><a href="#opening"><span>01</span>The missing future</a><a href="#learning"><span>02</span>Learning the machinery</a><a href="#inputs"><span>03</span>Seeing and reading</a><a href="#representations"><span>04</span>Holding a scene</a><a href="#recap"><span>05</span>Milestone recap</a><div class="reader-boundary"><strong>Boundary</strong><p>We stop before attention and generation.</p></div></aside><article class="longform"><section class="article-hero" id="opening"><a class="back-link" href="../"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg> Milestone overview</a><p class="article-kicker">Opening · The problem before the machinery</p><h1>Make this image move.</h1><p class="article-deck">A still photograph gives us evidence about one moment. A video demands a future the photograph never recorded.</p><figure class="article-figure"><img src="../milestone-1/m1-01-hero-many-futures.png" alt="One dog photograph branching into several compatible moving futures"/><figcaption>One observed scene can support several different continuations.</figcaption></figure><p>Look at one photograph of a golden dog standing in a field. Now add one instruction:</p><blockquote>Make the dog run through the field in slow motion while the camera follows alongside it.</blockquote><p>The request sounds simple because the desired result is short. But the image does not contain the next position of the dog&#x27;s legs, the movement of its fur, the camera path, or the field that will be revealed when the viewpoint changes. Those future moments are not hidden in the pixels. They do not exist there at all.</p><h2>Evidence is not a future</h2><p>The source frame constrains visible appearance, composition, lighting, pose, and the current viewpoint. Even these are interpretations of pixel values rather than labels stored inside the photograph.</p><div class="contrast-grid"><div><span>THE IMAGE CAN CONSTRAIN</span><ul><li>Identity and visible appearance</li><li>Current pose and composition</li><li>Lighting and material clues</li><li>One camera viewpoint</li></ul></div><div><span>THE SYSTEM MUST CREATE</span><ul><li>Motion and deformation</li><li>Newly revealed surfaces</li><li>Camera trajectory</li><li>A sequence of future moments</li></ul></div></div><p>If the system preserves everything, it can repeat the first frame and make a frozen clip. If it creates without restraint, identity and geometry drift. Useful I2V must create <em>inside constraints</em>.</p><div class="math-card"><span>ONE SMALL PIECE OF MATH</span><strong>P(V | I, c)</strong><p>Given image <b>I</b> and conditions <b>c</b>, which videos <b>V</b> remain plausible? You do not need to calculate it. The expression protects one idea: the input constrains the future without fully determining it.</p></div><h2>Why beautiful frames are not automatically a video</h2><p>Five individually attractive dog images can still flicker when played together: the collar disappears, the face changes, or the fence shifts. Video adds a second obligation. Each frame must agree with the frames around it in identity, motion, geometry, camera, and meaning.</p><p class="earned"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg> <strong>Idea earned:</strong> time turns generation into a persistence problem.</p></section><section class="article-section" id="learning"><p class="article-kicker">Act I · Learning</p><h2>Why not write rules for motion?</h2><p>“Move the dog forward” immediately breaks into more rules: paws follow different paths, joints bend, fur responds to movement, perspective changes, grass becomes hidden and visible. Then a different dog and camera arrive. The space of situations is too large and irregular for a practical rulebook.</p><figure class="article-figure"><img src="../milestone-1/m1-02-machine-learning.png" alt="Many motion examples teaching one adaptable machine that works on a new dog image"/><figcaption>Examples are practice. The goal is useful behaviour on a new request.</figcaption></figure><div class="definition-ladder"><div><b>Artificial intelligence</b><span>the broad goal</span></div><div><b>Machine learning</b><span>behaviour learned from examples</span></div><div><b>Deep learning</b><span>many learned processing layers</span></div><div><b>Neural networks</b><span>adjustable numerical machinery</span></div><div><b>Generative models</b><span>create new compatible samples</span></div><div><b>Image-to-video</b><span>generate video from an image and conditions</span></div></div><h2>The learning loop</h2><div class="mechanism-flow" role="img" aria-label="Training example then Model attempt then Loss then Backpropagation then Optimizer update"><div class="flow-part"><span>Training example</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Model attempt</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Loss</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Backpropagation</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Optimizer update</span></div></div><p>A neural network contains adjustable numbers called parameters or weights. A loss function measures one selected kind of error. Backpropagation calculates how a small parameter change would affect that loss. The optimizer uses those gradients to adjust the parameters. Repeated across many examples, this produces a trained model.</p><figure class="article-figure"><img src="../milestone-1/m1-03-loss.png" alt="A flawed prediction compared with a coherent target, producing a corrective signal"/><figcaption>Loss is a specific scorecard—not a complete understanding of whether a video is good.</figcaption></figure><div class="two-column-callout"><div><span>TRAINING</span><p>Learns parameters from many examples. It repeatedly computes loss, gradients, and updates.</p></div><div><span>INFERENCE</span><p>Uses the learned parameters for a new image and instruction. This is the pipeline the user experiences.</p></div></div><p>The user&#x27;s photograph is not the dataset from which the model relearns dogs and motion. It is a new inference input that constrains patterns acquired during training.</p><p class="earned"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg> <strong>Machinery earned:</strong> learning can create the model components we will later assemble.</p></section><section class="article-section" id="inputs"><p class="article-kicker">Act II · Inputs</p><h2>The user sees a dog. The model receives numbers.</h2><p>The image file contains a grid of pixel values. The instruction becomes identifiers for words or word pieces. Before either can guide a video, they must be translated into forms the model can transform and compare.</p><figure class="article-figure"><img src="../milestone-1/m1-04-multimodal-inputs.png" alt="Image, instruction, camera path, and audio becoming distinct internal streams"/><figcaption>Different modalities need distinct encoders, but their representations must eventually participate in one request.</figcaption></figure><div class="concept-pairs"><article><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg><h3>CNN</h3><p>Learned filters notice local patterns and combine them into larger visual features.</p></article><article><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-scan-line" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M7 12h10"></path></svg><h3>Vision Transformer</h3><p>Image patches become token-like units whose relationships can later be computed.</p></article><article><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-brain-circuit" aria-hidden="true"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"></path><path d="M9 13a4.5 4.5 0 0 0 3-4"></path><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"></path><path d="M3.477 10.896a4 4 0 0 1 .585-.396"></path><path d="M6 18a4 4 0 0 1-1.967-.516"></path><path d="M12 13h4"></path><path d="M12 18h6a2 2 0 0 1 2 2v1"></path><path d="M12 8h8"></path><path d="M16 8V5a2 2 0 0 1 2-2"></path><circle cx="16" cy="13" r=".5"></circle><circle cx="18" cy="3" r=".5"></circle><circle cx="20" cy="21" r=".5"></circle><circle cx="20" cy="8" r=".5"></circle></svg><h3>Text encoder</h3><p>Tokens become contextual language representations, so “runs” is interpreted with “dog” and “slow motion.”</p></article><article><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layers" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></svg><h3>Multimodal alignment</h3><p>Visual and language representations learn enough shared structure for the instruction to reach the relevant content.</p></article></div><h2>Tokens are pieces; embeddings are representations</h2><div class="mechanism-flow" role="img" aria-label="Pixels or text then Tokens / patches then Encoder then Embeddings"><div class="flow-part"><span>Pixels or text</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Tokens / patches</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Encoder</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Embeddings</span></div></div><p>A token is a unit the model processes. An embedding is the learned vector representing that unit numerically. Optional audio, depth, pose, or camera controls may enter through their own encoders.</p><p>Weak vision features can lose identity or structure. Weak text features can reduce “camera follows alongside” to vague motion. Weak alignment can make the system understand image and instruction separately while changing the wrong thing.</p><p class="earned"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg> <strong>Machinery earned:</strong> the request has become machine-usable evidence and conditions. Nothing has been generated yet.</p></section><section class="article-section" id="representations"><p class="article-kicker">Act III · Representations</p><h2>The model needs a smaller place to work.</h2><p>A short video contains millions of pixel values. Repeatedly reasoning over every full-resolution pixel is expensive. The model needs a compact numerical workspace that preserves useful structure while discarding some literal detail: a latent space.</p><figure class="article-figure"><img src="../milestone-1/m1-05-latent-workshop.png" alt="A detailed dog image compressed into a structured latent workspace and expanded into coherent frames"/><figcaption>A latent is a useful compressed workspace, not a miniature photograph or a list of named objects.</figcaption></figure><h2>Learn to pack and unpack</h2><div class="mechanism-flow" role="img" aria-label="Pixel image then Encoder then Latent representation then Decoder then Reconstructed pixels"><div class="flow-part"><span>Pixel image</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Encoder</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Latent representation</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Decoder</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Reconstructed pixels</span></div></div><p>An autoencoder learns two related transformations. The encoder compresses the input; the decoder reconstructs visible data. A variational autoencoder adds pressure for a more organized latent distribution, making the space more suitable for later sampling and generation.</p><div class="tradeoff"><span>THE COMPRESSION TRADEOFF</span><div><strong>More compression</strong><p>Cheaper generation, greater risk of lost detail.</p></div><div><strong>Less compression</strong><p>Richer detail, higher memory and compute cost.</p></div></div><h2>A representation is not the world</h2><p>A latent can lose tiny text, subtle texture, or exact geometry. It may preserve statistical patterns useful for plausible images without preserving facts needed for measurement or physical reasoning. An attractive reconstruction is not proof of a grounded simulation.</p><p class="earned"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg> <strong>Machinery earned:</strong> visual and language representations now exist. The next question is how the right pieces influence one another.</p></section><section class="article-section milestone-section" id="recap"><p class="article-kicker">Milestone I · Cumulative recap</p><h2>From a frozen frame to a working scene.</h2><p>This milestone does not pretend we can generate the video yet. It checks whether the foundation is strong enough to support what comes next.</p><figure class="article-figure"><img src="../milestone-1/m1-06-cumulative-scene.png" alt="Training creates learned machinery that converts a new image and instruction into an internal scene while later stages remain unresolved"/><figcaption>Solid stages are earned. The unresolved paths on the right are the next missing capability.</figcaption></figure><div class="stack-recap"><div><span>LEARNING PATH</span><div class="mechanism-flow" role="img" aria-label="Examples then Training loop then Learned encoders"><div class="flow-part"><span>Examples</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Training loop</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Learned encoders</span></div></div></div><div><span>INFERENCE PATH SO FAR</span><div class="mechanism-flow" role="img" aria-label="New image + instruction then Encoders then Embeddings + latent scene"><div class="flow-part"><span>New image + instruction</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Encoders</span><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><div class="flow-part"><span>Embeddings + latent scene</span></div></div></div><div class="unresolved"><span>NEXT NEED</span><strong>Coordination</strong><p>Which internal pieces should find and influence one another?</p></div></div><h2>Explain it back</h2><ol class="reader-questions"><li>Why is a still image not a tiny hidden video?</li><li>Why are hand-written motion rules insufficient?</li><li>What changes during training—and what happens during inference?</li><li>What is the difference between a token and an embedding?</li><li>Why does the model use a latent representation?</li><li>What critical ability is still missing?</li></ol><div class="milestone-statement"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-question-mark" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg><div><span>MILESTONE IN ONE SENTENCE</span><p>A learned I2V system must first translate partial image evidence and an instruction into useful internal representations; the next problem is coordinating those representations before a future can be generated.</p></div></div></section><section class="sources-section"><h2>Sources and deeper reading</h2><p>The story uses a deliberately gentle surface. These primary and authoritative references support the technical mechanisms behind it.</p><ul><li><a href="https://www.deeplearningbook.org/contents/ml.html">Goodfellow, Bengio &amp; Courville — Machine Learning Basics ↗</a></li><li><a href="https://arxiv.org/abs/2204.03458">Ho et al. — Video Diffusion Models ↗</a></li><li><a href="https://arxiv.org/abs/2010.11929">Dosovitskiy et al. — An Image Is Worth 16×16 Words ↗</a></li><li><a href="https://arxiv.org/abs/2103.00020">Radford et al. — Learning Transferable Visual Models From Natural Language Supervision ↗</a></li><li><a href="https://arxiv.org/abs/1312.6114">Kingma &amp; Welling — Auto-Encoding Variational Bayes ↗</a></li><li><a href="https://arxiv.org/abs/2112.10752">Rombach et al. — High-Resolution Image Synthesis with Latent Diffusion Models ↗</a></li></ul><a class="back-to-start" href="#reader-top">Return to the beginning ↑</a></section></article></div></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Make This Image Move — Milestone 1</title>
+  <meta name="description" content="A visual, intuition-first investigation of the machinery an AI needs before it can turn one photograph into a coherent video.">
+  <link rel="icon" href="../favicon.svg">
+  <link rel="stylesheet" href="../assets/site.css">
+  <link rel="stylesheet" href="../assets/milestone-v2.css">
+</head>
+<body class="v2-page">
+  <header class="reader-header">
+    <a class="reader-brand" href="../"><span class="mark">⌗</span><span>From Pixels to Worlds</span></a>
+    <span>Milestone 1 · Evidence to representation</span>
+    <a href="#mental-model">360° map ↓</a>
+  </header>
+  <div class="v2-shell">
+    <aside class="v2-nav" aria-label="Milestone sections">
+      <p>FOLLOW THE PROBLEM</p>
+      <a href="#1-a-photograph-is-rich-and-radically-incomplete"><span>01</span>The missing future</a>
+      <a href="#2-a-compact-equation-for-many-futures"><span>02</span>Many possible futures</a>
+      <a href="#3-why-we-cannot-animate-the-world-with-a-giant-rulebook"><span>03</span>How learning enters</a>
+      <a href="#4-the-user-sees-a-dog-the-machine-receives-arrays"><span>04</span>Pixels and language</a>
+      <a href="#5-forty-four-million-numbers-are-a-clumsy-workshop"><span>05</span>The latent workshop</a>
+      <a href="#6-stop-and-rebuild-the-machine"><span>06</span>Rebuild the machine</a>
+      <a href="#7-the-missing-capability-is-now-visible"><span>07</span>The next gap</a>
+      <div class="reader-boundary"><strong>Milestone boundary</strong><p>Attention and generation remain deliberately unresolved.</p></div>
+    </aside>
+    <main class="v2-main">
+      <article class="prose">
+        <section class="v2-hero">
+          <a class="back-link" href="../">← Milestone overview</a>
+          <p class="article-kicker">One problem · every necessary concept</p>
+          <h1>Make this image move.</h1>
+          <p class="article-deck">The photograph gives us one moment. A video demands a future that was never recorded.</p>
+          <p>Place a photograph on the table.</p>
+<p>In it, a golden dog stands in a field. Its mouth is open. One front paw is slightly raised. The grass behind it is soft with late-afternoon light.</p>
+<p>Now imagine that someone slides a note beside the photograph:</p>
+<blockquote>
+<p>Make the dog run through the field in slow motion while the camera follows alongside it.</p>
+</blockquote>
+<p>Read the sentence once more, but this time do not picture the finished video. Pause at the photograph.</p>
+<p>Where is the dog's next footstep?</p>
+<p>Where is the side of its body that the camera cannot currently see? What shape will its ears take when air catches them? Which grass will bend under its paws? If the camera moves to the right, what should appear at the left edge of the frame? How far away is the tree near the horizon—and should it slide slowly or quickly as the viewpoint changes?</p>
+<p>None of those answers is stored somewhere behind the photograph. The image is not a paused video waiting to be resumed. It is evidence from one instant.</p>
+<p>To make it move, a machine must construct moments that were never recorded.</p>
+<p>That is our way into Generative AI. We will not begin with a catalogue of architectures. We will begin with the missing future and earn each piece of machinery only when the problem demands it.</p>
+<figure class="article-figure"><img src="./m1-01-hero-many-futures.png" alt="One dog photograph branching into several plausible moving futures"><figcaption>One dog photograph branching into several plausible moving futures</figcaption></figure>
+
+        </section>
+        <section class="landscape-map" id="mental-model">
+          <div class="map-heading"><div><p class="article-kicker">Your compass for the complete series</p><h2>The 360° mental model</h2></div><p>Read left to right. The amber lane builds the machine. The cyan lane follows our request. Dashed stages are intentionally unresolved in Milestone 1.</p></div>
+          <a href="../assets/genai-360-landscape.svg" target="_blank" rel="noopener"><img src="../assets/genai-360-landscape.svg" alt="Complete Generative AI landscape through image-to-video, including training, request flow, failures, and adjacent modalities"></a>
+          <p class="map-caption">This map is not a table of contents. It is a causal chain: every solved problem exposes the next missing capability.</p>
+        </section>
+        <section class="article-body"><h2 id="1-a-photograph-is-rich-and-radically-incomplete">1. A photograph is rich—and radically incomplete</h2>
+<p>The image gives us more than a blank canvas. It constrains what a sensible continuation can be.</p>
+<p>The dog has a particular coat colour, face, size and pose. The sunlight comes from a particular direction. The horizon sits at a certain height. The dog is in front of some parts of the field and behind others. Perspective gives clues about distance. Shadows give clues about shape.</p>
+<p>These are promises the future video should keep.</p>
+<p>But notice the wording: the image gives <strong>clues</strong>. It does not arrive with a neat inventory saying “dog,” “grass,” “three metres from the camera,” or “left ear hidden by perspective.” The file contains numbers describing colour and brightness at locations in a grid. A human—or a model—must turn those measurements into useful structure.</p>
+<p>The photograph also leaves enormous gaps:</p>
+<ul>
+<li>We cannot see the far side of the dog.</li>
+<li>We do not know what lies just outside the frame.</li>
+<li>We know the current pose, but not the next one.</li>
+<li>We have clues about depth, but not a complete 3D model.</li>
+<li>We have one instant, so we cannot directly measure motion.</li>
+<li>We do not know whether the camera will remain fixed or move.</li>
+</ul>
+<p>Try a small experiment. Imagine three five-second films beginning from this exact photograph.</p>
+<p>In the first, the dog runs toward the camera. In the second, it turns and races to the right while the camera follows. In the third, it stays still while wind crosses the field.</p>
+<p>All three can agree perfectly with the starting image. The photograph alone cannot tell us which future is “the” correct one.</p>
+<p>The instruction removes some possibilities. “Runs” makes the still dog less suitable. “Through the field” rules out a sudden cut to a living room. “The camera follows alongside” favours a travelling viewpoint. “Slow motion” changes how movement should unfold across frames.</p>
+<p>Yet the instruction still does not specify every joint angle, camera coordinate, shadow, or blade of grass. It narrows the future without completing it.</p>
+<h3 id="the-first-mental-model-constrained-imagination">The first mental model: constrained imagination</h3>
+<p>Image-to-video generation lives between two bad extremes.</p>
+<p>At one extreme, the system protects the input so fiercely that it repeats the photograph sixteen times. Identity is perfect. Nothing drifts. Nothing moves either.</p>
+<p>At the other extreme, the system creates freely. The dog gallops, the camera swoops, and the field changes beautifully—but the dog's face becomes another face, the collar appears and disappears, and the horizon jumps.</p>
+<p>The useful region lies between them:</p>
+<blockquote>
+<p>Preserve what the evidence commits us to. Invent what the requested future requires.</p>
+</blockquote>
+<p>That sentence is more important than any model name in this chapter.</p>
+<div class="table-scroll"><table role="table">
+<thead>
+<tr>
+<th>The source asks us to preserve</th>
+<th>The future forces us to create</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>identity and visible appearance</td>
+<td>unseen poses and deformation</td>
+</tr>
+<tr>
+<td>current scene layout</td>
+<td>newly revealed surfaces</td>
+</tr>
+<tr>
+<td>lighting and material clues</td>
+<td>motion through space and time</td>
+</tr>
+<tr>
+<td>the initial viewpoint</td>
+<td>a camera trajectory</td>
+</tr>
+<tr>
+<td>the user's explicit constraints</td>
+<td>thousands of unspecified details</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="why-attractive-frames-can-still-make-a-terrible-video">Why attractive frames can still make a terrible video</h3>
+<p>Suppose we generate five beautiful pictures of a running dog. Viewed separately, each could win an image contest. Played in sequence, they may fail immediately.</p>
+<p>Frame one gives the dog a red collar. Frame two loses it. Frame three shortens the muzzle. Frame four moves a fence post. Frame five changes the direction of the light.</p>
+<p>The eye is unusually sensitive to this kind of disagreement. A small inconsistency that hides inside a single image becomes a flash when it changes from frame to frame.</p>
+<p>Video therefore adds a new obligation: <strong>persistence</strong>. The future must not merely look plausible at each instant; the instants must belong to the same unfolding scene.</p>
+<p>We have already uncovered several later parts of the stack—identity, motion, camera, hidden surfaces, time—without naming an architecture. That is the method of this series: let the failure reveal the missing capability.</p>
+<h2 id="2-a-compact-equation-for-many-futures">2. A compact equation for “many futures”</h2>
+<p>We can now introduce one piece of mathematics because the idea already exists in words.</p>
+<p><span class="math-display">P(V | I, c)</span></p>
+<p>Read it aloud:</p>
+<blockquote>
+<p>Given image <span class="math-inline">I</span> and conditions <span class="math-inline">c</span>, how plausible is a possible video <span class="math-inline">V</span>?</p>
+</blockquote>
+<p><span class="math-inline">I</span> is our dog photograph. The conditions <span class="math-inline">c</span> may include the instruction, desired duration, camera path, pose, audio, style, or other controls. <span class="math-inline">V</span> is one candidate video.</p>
+<p>The expression does not say that the model knows the real future. There may be no real future; the photograph could be staged. It says that some continuations fit the evidence and conditions better than others.</p>
+<p>Imagine placing possible videos on a giant landscape. Videos that change the dog into a bicycle sit in a very low region. Videos in which the dog remains the same and begins running occupy higher ground. The instruction reshapes that landscape: a sideways tracking shot rises; a fixed camera becomes less favoured.</p>
+<p>Generation will eventually mean finding one good route through this landscape. We are not ready to do that yet. First we must ask how the machine acquires any sense of what “good” looks like.</p>
+<h3 id="keep-two-journeys-separate">Keep two journeys separate</h3>
+<p>From here onward, we will move between two timelines.</p>
+<p>In the <strong>learning journey</strong>, many earlier examples, objectives, and corrections shape a model. This is where loss, backpropagation, optimization, data, and scale belong.</p>
+<p>In the <strong>request journey</strong>, that trained model receives our particular photograph and instruction. This is where the dog becomes visual representations, the sentence becomes language representations, and a possible video is eventually generated.</p>
+<pre lang="text" class="notranslate"><code class="notranslate">HOW THE MACHINE WAS BUILT              HOW OUR REQUEST MOVES THROUGH IT
+
+many examples                          this dog photograph
+objectives and loss                    this instruction
+backpropagation                        encoders and representations
+optimization                           generation and decoding
+        ↓                                      ↓
+ trained parameters  ───────────────→  one attempted video
+</code></pre>
+<p>The two journeys meet in the trained parameters, but they are not the same event. Our photograph is evidence for the request; it is not the entire education of the machine.</p>
+<h2 id="3-why-we-cannot-animate-the-world-with-a-giant-rulebook">3. Why we cannot animate the world with a giant rulebook</h2>
+<p>The most natural first idea is also the one worth taking seriously: write rules.</p>
+<p>Start with a simple rule: move the dog ten pixels to the right in each frame.</p>
+<p>The result does not look like running. It looks like a cardboard cutout sliding across the grass.</p>
+<p>So we add rules. Rotate the legs. Move the front paws forward and the rear paws backward. Raise and lower the body. Make the ears bounce. Shift the shadow. Change the size of the dog as the camera moves.</p>
+<p>Now the paws slide because they do not remain planted during contact. The joints bend in impossible directions. The fur acts like a rigid shell. Grass that should be hidden remains visible through the legs. The far side of the body never appears. The background moves at one speed even though nearby grass should shift faster than the distant hills.</p>
+<p>Each repair creates three more cases. A small dog runs differently from a large dog. A dog turning toward the camera projects a different shape from one moving sideways. Wet fur behaves differently from dry fur. A handheld camera behaves differently from a dolly.</p>
+<p>There is nothing foolish about rules. Physics engines, animation rigs and graphics pipelines use them successfully when the world has been explicitly modelled. Our difficulty is that a random photograph does not arrive with a skeleton, depth map, material description, lighting setup, and 3D scene hidden behind it.</p>
+<p>We need machinery that can extract reusable regularities from examples. We have moved, briefly, from the request journey to the question of how such machinery could be built.</p>
+<h3 id="learning-as-compressed-experience">Learning as compressed experience</h3>
+<p>Imagine an apprentice animator who has watched thousands of animals move. The apprentice has not memorized a verbal rule for every paw. Instead, practice has changed what they notice. They expect weight to shift before a leap. They recognize that a planted foot should not slide. They anticipate how perspective changes as a body turns.</p>
+<p>Machine learning is far less human than this apprentice, but the comparison gives us one useful idea: examples can shape behaviour without every behaviour being written as a separate rule.</p>
+<p>The model contains adjustable numbers called <strong>parameters</strong> or <strong>weights</strong>. During training, those numbers are changed until the system becomes better at a chosen task.</p>
+<p>No individual weight means “golden fur” or “left paw.” Useful behaviour is distributed across many interactions. This matters because phrases such as “the model learned dogs” can create the false picture of a tidy dog file stored inside the network.</p>
+<h3 id="where-ai-machine-learning-and-deep-learning-fit">Where AI, machine learning, and deep learning fit</h3>
+<p>What we have just described has a name: machine learning. This gives us one useful moment to locate ourselves on the larger AI map. The map is orientation, not a new destination.</p>
+<p><strong>Artificial intelligence</strong> is the broad ambition: build machines that perform abilities we associate with intelligence—recognizing, predicting, planning, creating, or acting.</p>
+<p><strong>Machine learning</strong> is one route toward that ambition. Instead of writing every behaviour directly, we choose a learning setup and allow examples to shape the behaviour.</p>
+<p><strong>Deep learning</strong> is a family of machine-learning methods built from neural networks with many stages of learned transformation. “Deep” does not mean thoughtful or conscious. It refers to layers of computation.</p>
+<p>A <strong>neural network</strong> is the adjustable numerical machinery inside that family. Its name was historically inspired by brains, but a modern artificial neuron is a mathematical operation, not a tiny biological cell with feelings or intention.</p>
+<p>A <strong>generative model</strong> is defined by what we ask the learned system to do: produce new samples compatible with patterns and conditions. Text models generate token sequences. Image models generate visual content. Our image-to-video model must generate a sequence of frames while remaining constrained by an image and instruction.</p>
+<p>The nesting looks like this:</p>
+<pre lang="text" class="notranslate"><code class="notranslate">Artificial intelligence — the broad goal
+└── Machine learning — behaviour shaped by data
+    └── Deep learning — multilayer neural networks
+        └── Generative modelling — creating compatible new samples
+            └── Image-to-video — creating a video from an image and controls
+</code></pre>
+<p>These are not rival brands. Saying “we use deep learning instead of neural networks” is like saying “we use a novel instead of sentences.” One level is built from the other.</p>
+<h3 id="learning-is-useful-only-if-it-travels-beyond-the-examples">Learning is useful only if it travels beyond the examples</h3>
+<p>Imagine a model that reproduces every training clip perfectly but becomes helpless when shown a dog it has never seen. It has stored answers without acquiring a reusable ability.</p>
+<p>The goal is <strong>generalization</strong>: patterns learned from earlier examples should remain useful for a new combination of dog, field, pose, instruction, and camera.</p>
+<p>Generalization is not guaranteed. It depends on what the data covers, what the objective rewards, how much capacity the model has, and how similar the new situation is to its experience. A model trained mostly on steady daylight clips may struggle with a fast handheld night scene. A dataset with narrow cultural or visual coverage can create blind spots. A model can also learn shortcuts—background clues that correlate with an action in the data but do not cause it.</p>
+<p>This is why “the training loss went down” is evidence of progress, not proof that the system understands the world.</p>
+<h3 id="one-training-step-slowed-down">One training step, slowed down</h3>
+<p>Take one short training clip in which a dog runs across a field. Hide or corrupt part of the information and ask the model to make a prediction relevant to its training objective.</p>
+<p>Its first attempt is poor. Perhaps the predicted representation places the front paw too high and blurs the edge of the body.</p>
+<p>Four things now happen:</p>
+<ol>
+<li><strong>The attempt is compared with a target.</strong></li>
+<li><strong>A loss function turns selected differences into a number.</strong></li>
+<li><strong>Backpropagation calculates how each adjustable parameter contributed to that loss.</strong></li>
+<li><strong>An optimizer nudges the parameters in directions expected to reduce future loss.</strong></li>
+</ol>
+<p>Then the process repeats—with another corruption, another frame, another clip, another dog, another camera.</p>
+<figure class="article-figure"><img src="./m1-03-loss.png" alt="A flawed prediction compared with a coherent target to produce a corrective signal"><figcaption>A flawed prediction compared with a coherent target to produce a corrective signal</figcaption></figure>
+<h3 id="loss-is-a-ruler-not-a-teacher-with-judgment">Loss is a ruler, not a teacher with judgment</h3>
+<p>The word <strong>loss</strong> can sound as though the machine feels disappointment. It does not. Loss is a measurement chosen by designers.</p>
+<p>That measurement is powerful precisely because it is specific. It may measure error in predicted noise, reconstruction, alignment, or another training target. But specificity also creates a limitation: the model becomes better at what the objective rewards, not automatically at everything people care about.</p>
+<p>A video can achieve a good numerical score and still feel wrong. The score may not fully capture whether the dog's personality appears unchanged, whether the motion has convincing weight, or whether a subtle camera move feels natural.</p>
+<p>This is one reason evaluation remains difficult later in the stack. “Looks right to a person” is not one simple quantity.</p>
+<h3 id="backpropagation-does-not-decide-what-matters">Backpropagation does not decide what matters</h3>
+<p>Backpropagation often receives mystical explanations. Its role is narrower and more mechanical.</p>
+<p>Many parameters helped produce the attempt. The loss tells us how wrong the selected outcome was. Backpropagation uses the chain rule to carry that information backward through the calculations, estimating how a tiny change in each parameter would affect the loss.</p>
+<p>It assigns numerical responsibility. It does not choose the values of the project. The objective and data did that.</p>
+<h3 id="the-optimizer-is-cautious-for-a-reason">The optimizer is cautious for a reason</h3>
+<p>If we changed every parameter dramatically after one bad paw, the model might improve that example and damage a thousand others. Optimizers therefore take controlled steps, combining gradient information across training examples and time.</p>
+<p>Learning emerges from an enormous number of small corrections, not from a single moment of understanding.</p>
+<h3 id="training-is-not-what-happens-after-you-press-generate">Training is not what happens after you press Generate</h3>
+<p>This distinction is easy to lose because both stages use the same model.</p>
+<p><strong>Training</strong> is the long period during which examples, objectives, backpropagation, and optimization shape the parameters. It can consume enormous datasets and distributed computing.</p>
+<p><strong>Inference</strong> begins when we provide our dog photograph and instruction to the already-trained system. The model uses what its parameters have acquired. It does not relearn the meaning of dogs from our single picture.</p>
+<div class="table-scroll"><table role="table">
+<thead>
+<tr>
+<th>During training</th>
+<th>During our request</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>many examples shape parameters</td>
+<td>one new image constrains a result</td>
+</tr>
+<tr>
+<td>loss and gradients guide updates</td>
+<td>the main model weights usually remain fixed</td>
+</tr>
+<tr>
+<td>broad reusable patterns are acquired</td>
+<td>those patterns are applied to this scene</td>
+</tr>
+<tr>
+<td>hours, days, or months may be spent</td>
+<td>a result is expected in practical time</td>
+</tr>
+</tbody>
+</table></div>
+<p>The image is evidence for inference, not the complete education of the model.</p>
+<p>But names and training loops do not move our dog. We have answered how the machinery could acquire useful behaviour. We have not answered what happens when <strong>this</strong> photograph enters it.</p>
+<blockquote class="continuity-checkpoint"><p><strong>WHAT WE NOW HAVE</strong><br>
+A way for examples and objectives to shape adjustable machinery.</p>
+<p><strong>WHAT WE STILL DO NOT HAVE</strong><br>
+A machine-usable description of this particular dog, field, and instruction.</p>
+<p><strong>WHAT PROBLEM APPEARS NEXT?</strong><br>
+When we hand the trained model a photograph, what exactly does it receive?</p>
+</blockquote>
+<p>Not a dog.</p>
+<p>Numbers.</p>
+<h2 id="4-the-user-sees-a-dog-the-machine-receives-arrays">4. The user sees a dog; the machine receives arrays</h2>
+<p>We have explained how useful machinery can be learned. We still have not explained what enters it.</p>
+<p>Zoom into the photograph until the dog's eye disappears into coloured squares. Each square records measurements—commonly red, green, and blue channel values. A model does not begin with “eye,” “dog,” or even “object.”</p>
+<p>Likewise, the instruction does not arrive as intention. A tokenizer first divides it into processable pieces. Depending on the tokenizer, a piece may be a word, part of a word, punctuation, or whitespace pattern. Each token is represented by an identifier.</p>
+<p>Pixels and token IDs are raw ingredients. To guide a video, they must become representations in which useful relationships are easier to express.</p>
+<h3 id="why-an-encoder-is-more-than-a-file-converter">Why an encoder is more than a file converter</h3>
+<p>An <strong>encoder</strong> is a learned transformation. It changes raw input into features that later machinery can use.</p>
+<p>For the image, useful features may carry evidence about edges, texture, parts, shapes, objects, depth, composition, and relationships. These are not clean human labels stored in separate boxes. They are distributed numerical patterns that become useful because of how the whole system was trained.</p>
+<p>For the sentence, useful features must depend on context. “Run” in “the dog will run” is not quite the same as “the colours run in the rain.” “Alongside” describes a spatial relationship. “Slow motion” changes temporal presentation rather than the dog's identity.</p>
+<p>The encoder's job is not merely to shrink data. It makes distinctions that later stages need.</p>
+<h3 id="two-ways-to-begin-seeing-an-image">Two ways to begin seeing an image</h3>
+<p>We can now name two common visual routes because we know why a route is necessary.</p>
+<p>A <strong>convolutional neural network (CNN)</strong> uses learned filters that move across local neighbourhoods. The same filter can notice a pattern wherever it appears. Layers combine small patterns into larger ones. This gives CNNs a useful bias toward locality: nearby pixels often belong together.</p>
+<p>A <strong>Vision Transformer (ViT)</strong> divides the image into patches and turns them into token-like participants. Later attention mechanisms allow patches to exchange information. A patch covering part of a paw can be interpreted using distant patches containing the body, ground, and surrounding scene.</p>
+<p>“Small moving windows” and “tiles comparing notes” are helpful intuitions, but neither architecture literally sees named parts the way we do. Both learn numerical representations whose usefulness depends on data and objectives.</p>
+<h3 id="tokens-are-pieces-embeddings-are-learned-coordinates">Tokens are pieces; embeddings are learned coordinates</h3>
+<p>A token is a unit presented to the model. An <strong>embedding</strong> is a vector—a list of numbers—that represents a token or input piece in a learned space.</p>
+<p>Why use a vector instead of a dictionary definition?</p>
+<p>Because later computation needs relationships. In a useful embedding space, representations can carry patterns of similarity, difference, context, and role. The embedding for “dog” does not need to contain an English sentence defining a dog. It needs to interact usefully with other representations and with what the model sees.</p>
+<p>Context matters. The text encoder should produce a representation of “runs” influenced by “dog,” “field,” and “slow motion.” The same token in another sentence can receive a different contextual representation.</p>
+<h3 id="the-two-languages-must-meet">The two languages must meet</h3>
+<p>We now have a visual representation and a language representation. That alone does not guarantee that the phrase “the dog” points toward the correct regions of the image.</p>
+<p><strong>Multimodal alignment</strong> is the learned compatibility that lets representations from different modalities participate in shared meaning. During training, related images and text can be pulled into useful correspondence while unrelated pairs are distinguished.</p>
+<p>For our request, alignment must support several connections:</p>
+<ul>
+<li>“dog” should refer to the animal, not the field;</li>
+<li>“runs” should affect its motion, not merely add blur;</li>
+<li>“slow motion” should influence temporal unfolding;</li>
+<li>“camera follows alongside” should guide viewpoint change;</li>
+<li>the source image should keep the particular dog's appearance in control.</li>
+</ul>
+<p>Weak alignment produces a familiar failure: the system understands every ingredient separately but combines them incorrectly.</p>
+<figure class="article-figure"><img src="./m1-04-multimodal-inputs.png" alt="Image, instruction, camera path, and audio becoming distinct machine-usable streams"><figcaption>Image, instruction, camera path, and audio becoming distinct machine-usable streams</figcaption></figure>
+<h3 id="optional-controls-are-not-decorative-extras">Optional controls are not decorative extras</h3>
+<p>A modern video system may accept more than image and text:</p>
+<ul>
+<li>a pose sequence can constrain body configuration;</li>
+<li>depth can provide rough geometry;</li>
+<li>edges or segmentation can preserve structure;</li>
+<li>audio can influence timing or events;</li>
+<li>a camera path can constrain viewpoint;</li>
+<li>duration and frame rate define the temporal canvas.</li>
+</ul>
+<p>Each signal needs a representation and a route into the model. Adding a modality is not just adding another upload button; it creates a new coordination problem.</p>
+<p>Return to the field. Somewhere inside these vectors, “dog” can now interact differently from “field,” and “camera follows alongside” can remain distinct from “dog runs.” The request is no longer merely pixels beside token IDs.</p>
+<p>But we still have not generated a single frame.</p>
+<blockquote class="continuity-checkpoint"><p><strong>WHAT WE NOW HAVE</strong><br>
+Visual representations of the scene and contextual representations of the instruction, with enough learned alignment for them to refer to a shared request.</p>
+<p><strong>WHAT WE STILL DO NOT HAVE</strong><br>
+A practical place to construct an entire video.</p>
+<p><strong>WHAT PROBLEM APPEARS NEXT?</strong><br>
+Do we really want to invent every future directly among tens of millions of raw pixel values?</p>
+</blockquote>
+<h2 id="5-forty-four-million-numbers-are-a-clumsy-workshop">5. Forty-four million numbers are a clumsy workshop</h2>
+<p>Consider a modest video: 16 frames, each 1280 pixels wide and 720 pixels high, with three colour channels.</p>
+<p><span class="math-display">16 × 1280 × 720 × 3 = 44,236,800</span></p>
+<p>That is more than forty-four million colour values for less than a second of video at 16 frames per second. A longer or higher-resolution clip quickly multiplies the burden.</p>
+<p>More importantly, raw pixels are not always the most useful level at which to make every decision. If the dog moves slightly, millions of pixel values change even though the underlying event is simple: the same dog changed pose and position.</p>
+<p>The generator needs a more compact workshop.</p>
+<h3 id="a-latent-space-is-a-working-representation">A latent space is a working representation</h3>
+<p>A <strong>latent representation</strong> is compressed, learned, and hidden from direct view. It keeps patterns useful to the model while discarding some literal detail.</p>
+<p>The popular “suitcase” analogy helps at first: when travelling, we pack what we expect to need and leave the room behind. But a latent is not a suitcase with separate compartments labelled DOG, FIELD, and LIGHT. Information is distributed. A change in one numerical dimension may affect several visible qualities.</p>
+<p>A better second analogy is an architect's model. It is smaller than the building and omits wallpaper fibres, yet it preserves relationships useful for planning. The danger is equally clear: if the model omits a staircase, no amount of careful planning inside the model can recover its exact shape later.</p>
+<h3 id="the-autoencoder-learns-what-to-keep">The autoencoder learns what to keep</h3>
+<p>An <strong>autoencoder</strong> has two cooperating parts:</p>
+<pre lang="text" class="notranslate"><code class="notranslate">pixels → encoder → latent representation → decoder → reconstructed pixels
+</code></pre>
+<p>During training, the encoder compresses an input and the decoder tries to reconstruct it. Reconstruction error pressures the latent to retain useful information.</p>
+<p>The bottleneck matters. If the latent were as large and unconstrained as the input, the system could simply copy. Compression forces choices.</p>
+<p>For image-to-video, we can encode visible frames into latents, perform expensive generative work in that smaller space, and decode the result back into frames. This is one reason latent generative systems can be dramatically more practical than systems operating at full pixel resolution throughout.</p>
+<figure class="article-figure"><img src="./m1-05-latent-workshop.png" alt="A detailed image compressed into a structured latent workshop and expanded into coherent frames"><figcaption>A detailed image compressed into a structured latent workshop and expanded into coherent frames</figcaption></figure>
+<h3 id="compression-is-a-bargain-not-a-free-lunch">Compression is a bargain, not a free lunch</h3>
+<p>More compression makes later computation cheaper. It also creates more opportunities to lose information.</p>
+<p>Imagine that the dog's collar contains tiny engraved letters. If the encoder discards them, the decoder cannot faithfully restore them. It may invent letter-like marks because those look plausible. The result can be visually convincing and factually wrong.</p>
+<p>This gives us a general lesson that will return throughout Generative AI:</p>
+<blockquote>
+<p>A representation optimized for plausible reconstruction is not automatically a reliable database of facts.</p>
+</blockquote>
+<p>Latents can lose fine text, exact counts, subtle geometry, and rare details. They are useful models for generation, not guaranteed replicas of the world.</p>
+<h3 id="why-a-variational-autoencoder-organizes-the-workshop">Why a variational autoencoder organizes the workshop</h3>
+<p>A plain autoencoder may reconstruct well while leaving its latent space irregular. Imagine that familiar images occupy isolated islands with empty, unreliable water between them. Moving from one island to another could pass through regions the decoder has never learned to handle.</p>
+<p>A <strong>variational autoencoder (VAE)</strong> adds pressure for a smoother, more organized latent distribution. Rather than encoding an input as only one rigid point, the encoder commonly describes a small distribution using a mean and spread. Training balances two desires:</p>
+<ol>
+<li>preserve enough information to reconstruct the input;</li>
+<li>keep the latent space regular enough to sample and navigate.</li>
+</ol>
+<p>Push too hard on reconstruction and the space may remain awkward. Push too hard on regularity and fine details may wash away.</p>
+<p>We do not need the full derivation yet. The mental model is enough: reconstruction makes the latent useful; regularization makes it navigable.</p>
+<h3 id="where-is-time-in-this-representation">Where is time in this representation?</h3>
+<p>One image latent represents one moment. A video representation must also locate information in time.</p>
+<p>Some systems compress individual frames and let later temporal machinery connect them. Others use video-aware encoders that compress small blocks across space and time. Either way, position matters. The system needs ways to distinguish left from right, top from bottom, and earlier from later.</p>
+<p>Without positional information, the same collection of patches could be rearranged without the model knowing which arrangement we meant.</p>
+<p>We now possess a compact scene representation. But possessing pieces is not the same as knowing how they should influence one another.</p>
+<p>Return once more to the dog's coat. In pixel space it was millions of colour measurements. In the latent it is no longer a literal patch of golden pixels, yet enough structure must survive for the decoder to reconstruct the same animal. If that structure is weak, the coat, face, collar, or body proportions may drift when the future is generated.</p>
+<blockquote class="continuity-checkpoint"><p><strong>WHAT WE NOW HAVE</strong><br>
+A compact visual workshop, language embeddings, and routes for optional controls.</p>
+<p><strong>WHAT WE STILL DO NOT HAVE</strong><br>
+A way for the relevant pieces to selectively exchange information.</p>
+<p><strong>WHAT PROBLEM APPEARS NEXT?</strong><br>
+How does “dog” find the dog, and how does “camera follows alongside” influence viewpoint without rewriting identity?</p>
+</blockquote>
+<h2 id="6-stop-and-rebuild-the-machine">6. Stop and rebuild the machine</h2>
+<p>Before we add another technical term, let us return to the photograph.</p>
+<p>The user supplies a dog image and an instruction. Those inputs meet machinery shaped earlier by training.</p>
+<p>The image encoder turns pixels into useful visual evidence. The text encoder turns tokenized language into contextual embeddings. Optional controls follow their own routes. A latent encoder places visual information into a smaller working space.</p>
+<p>Two stories are happening at different times:</p>
+<pre lang="text" class="notranslate"><code class="notranslate">LEARNING STORY
+examples + objectives
+        ↓
+loss → backpropagation → optimizer
+        ↓
+trained parameters
+
+REQUEST STORY
+new image + instruction
+        ↓
+encoders
+        ↓
+visual latent + language embeddings
+</code></pre>
+<p>Do not merge these stories. The user's image enters the request story. It is not the dataset from which the whole model learns.</p>
+<figure class="article-figure"><img src="./m1-06-cumulative-scene.png" alt="Training creates machinery that translates a new image and instruction into a compact internal scene"><figcaption>Training creates machinery that translates a new image and instruction into a compact internal scene</figcaption></figure>
+<h3 id="what-each-component-has-actually-earned">What each component has actually earned</h3>
+<div class="table-scroll"><table role="table">
+<thead>
+<tr>
+<th>Component</th>
+<th>The problem that forced it to appear</th>
+<th>What it contributes</th>
+<th>What it does <strong>not</strong> solve yet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Learning from data</td>
+<td>rules cannot cover every dog, motion, and camera</td>
+<td>reusable behaviour shaped by examples</td>
+<td>correctness outside its data and objectives</td>
+</tr>
+<tr>
+<td>Loss</td>
+<td>“looks wrong” is not trainable</td>
+<td>a numerical training signal</td>
+<td>complete human judgment</td>
+</tr>
+<tr>
+<td>Backpropagation</td>
+<td>billions of parameters share responsibility</td>
+<td>gradients for trainable parameters</td>
+<td>deciding what should be valued</td>
+</tr>
+<tr>
+<td>Optimizer</td>
+<td>one correction should not destroy everything else</td>
+<td>controlled parameter updates</td>
+<td>guaranteed global understanding</td>
+</tr>
+<tr>
+<td>Vision encoder</td>
+<td>pixels are measurements, not scene structure</td>
+<td>useful visual features</td>
+<td>future motion</td>
+</tr>
+<tr>
+<td>Text encoder</td>
+<td>token IDs are not intention</td>
+<td>contextual language representations</td>
+<td>correct grounding in the image by itself</td>
+</tr>
+<tr>
+<td>Multimodal alignment</td>
+<td>image and text begin in different representational systems</td>
+<td>compatibility across modalities</td>
+<td>detailed coordination at every layer</td>
+</tr>
+<tr>
+<td>Latent space</td>
+<td>pixel-space video is large and awkward</td>
+<td>a compact generative workspace</td>
+<td>perfect preservation of every fact</td>
+</tr>
+<tr>
+<td>Autoencoder / VAE</td>
+<td>the system must enter and leave that workspace</td>
+<td>compression, reconstruction, and a more navigable space</td>
+<td>generation of the future itself</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table is deliberately honest. Nothing here has made the dog run.</p>
+<h3 id="read-failures-backward-through-the-machine">Read failures backward through the machine</h3>
+<p>A useful mental model should help when the result goes wrong. Consider what different failures suggest—not as perfect diagnoses, but as places to investigate.</p>
+<div class="table-scroll"><table role="table">
+<thead>
+<tr>
+<th>What we observe in the generated clip</th>
+<th>Questions it raises</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The dog slowly becomes a different dog</td>
+<td>Was identity represented strongly enough? Did conditioning remain influential through time?</td>
+</tr>
+<tr>
+<td>The prompt says “run,” but the dog barely moves</td>
+<td>Did language align with the correct subject? Did later motion-generation machinery follow the condition?</td>
+</tr>
+<tr>
+<td>The dog moves, but legs stretch or multiply</td>
+<td>Has the system learned robust body and motion regularities? Can its spatial-temporal representation preserve structure?</td>
+</tr>
+<tr>
+<td>The background bends as the camera travels</td>
+<td>Does the system have enough depth, geometry, occlusion, and camera consistency?</td>
+</tr>
+<tr>
+<td>Tiny collar lettering mutates</td>
+<td>Was the detail lost during compression, or plausibly reconstructed rather than faithfully preserved?</td>
+</tr>
+<tr>
+<td>Each frame looks excellent, but the clip flickers</td>
+<td>Are temporal relationships and persistence too weak?</td>
+</tr>
+</tbody>
+</table></div>
+<p>Several components can contribute to one failure. The point is not to assign blame from appearance alone. The point is to replace “AI video is weird” with informed questions about evidence, representation, conditioning, generation, time, and decoding.</p>
+<h2 id="7-the-missing-capability-is-now-visible">7. The missing capability is now visible</h2>
+<p>Inside the machine we have visual regions, language embeddings, positions, and perhaps camera or pose controls.</p>
+<p>But which visual regions should listen to the word “dog”? How should “slow motion” influence time without changing identity? How can a patch containing one paw use information from the body several patches away? How should the camera instruction affect the background differently from the animal?</p>
+<p>The pieces need selective communication.</p>
+<p>That need will introduce attention, cross-attention, Transformers, and temporal attention in the next milestone. Notice how different this feels from beginning with the sentence “Transformers use attention.” We now have a reason to want attention before receiving its name.</p>
+<h2 id="8-test-the-mental-model-not-the-vocabulary">8. Test the mental model—not the vocabulary</h2>
+<p>Close the article and try to explain the following to another person:</p>
+<ol>
+<li>Why is the photograph evidence rather than a paused future?</li>
+<li>Give two different videos that could honestly begin from the same image.</li>
+<li>Why does a sliding cardboard cutout expose the limit of hand-written rules?</li>
+<li>What role belongs to loss, and what role belongs to backpropagation?</li>
+<li>Why is training different from the moment the user presses Generate?</li>
+<li>What is the difference between a token and an embedding?</li>
+<li>Why must image and language representations be aligned?</li>
+<li>Why is a latent useful, and what can compression destroy?</li>
+<li>What is still missing after Milestone 1?</li>
+</ol>
+<p>If the answer to the final question is “a way for the right pieces to find and influence one another,” the next machinery has been earned.</p>
+<h2 id="milestone-1-in-one-sentence">Milestone 1 in one sentence</h2>
+<blockquote>
+<p>Before an image-to-video system can invent motion, learned encoders must turn partial visual evidence and human instructions into compact, compatible internal representations—and the next challenge is teaching those representations to coordinate.</p>
+</blockquote>
+<p>We began with a photograph that could not move. We end with something more precise than a list of AI terms: a partial machine, a set of responsibilities, and a clearly visible gap.</p>
+<p>The dog is still standing in the field.</p>
+<p>Now we know why making it take the first believable step is such a profound engineering problem.</p>
+<h2 id="sources-and-deeper-reading">Sources and deeper reading</h2>
+<ul>
+<li>Ian Goodfellow, Yoshua Bengio, and Aaron Courville, <a href="https://www.deeplearningbook.org/contents/ml.html" rel="nofollow"><em>Deep Learning</em> — Machine Learning Basics</a>.</li>
+<li>Diederik P. Kingma and Max Welling, <a href="https://arxiv.org/abs/1312.6114" rel="nofollow">“Auto-Encoding Variational Bayes”</a>.</li>
+<li>Alexey Dosovitskiy et al., <a href="https://arxiv.org/abs/2010.11929" rel="nofollow">“An Image Is Worth 16×16 Words”</a>.</li>
+<li>Alec Radford et al., <a href="https://arxiv.org/abs/2103.00020" rel="nofollow">“Learning Transferable Visual Models From Natural Language Supervision”</a>.</li>
+<li>Robin Rombach et al., <a href="https://arxiv.org/abs/2112.10752" rel="nofollow">“High-Resolution Image Synthesis with Latent Diffusion Models”</a>.</li>
+<li>Jonathan Ho et al., <a href="https://arxiv.org/abs/2204.03458" rel="nofollow">“Video Diffusion Models”</a>.</li>
+</ul></section>
+      </article>
+      <footer class="v2-footer"><span>From Pixels to Worlds</span><p>The dog is still standing in the field. Now we know what the machine needs before it can take the first believable step.</p><a href="#top">Back to top ↑</a></footer>
+    </main>
+  </div>
+</body>
+</html>

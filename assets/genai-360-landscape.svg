@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1320" viewBox="0 0 1800 1320" role="img" aria-labelledby="title desc">
+  <title id="title">The complete generative AI landscape seen through image-to-video</title>
+  <desc id="desc">Two connected paths show how training builds a model and how a new image and instruction travel through encoders, alignment, latent representation, generation, temporal modelling, decoding, and evaluation. A failure map connects visible defects to likely parts of the system, and a lower band places video generation within the wider generative AI landscape.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07101a"/><stop offset="1" stop-color="#0d1623"/></linearGradient>
+    <linearGradient id="request" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#56d7e5"/><stop offset="1" stop-color="#8ae6c2"/></linearGradient>
+    <linearGradient id="build" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#f4b84a"/><stop offset="1" stop-color="#d69cf7"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <marker id="arrowC" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0 0L12 6L0 12Z" fill="#56d7e5"/></marker>
+    <marker id="arrowA" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0 0L12 6L0 12Z" fill="#f4b84a"/></marker>
+    <style>
+      .sans{font-family:Inter,Segoe UI,Arial,sans-serif}.mono{font-family:Cascadia Code,Consolas,monospace}
+      .title{font-size:44px;font-weight:750;fill:#f4f7fb}.sub{font-size:20px;fill:#9aa9bb}.eyebrow{font-size:15px;font-weight:750;letter-spacing:3px}
+      .laneTitle{font-size:23px;font-weight:750}.boxTitle{font-size:19px;font-weight:700;fill:#f3f7fb}.boxSub{font-size:15px;fill:#aab6c6}.tiny{font-size:13px;fill:#8998aa}.failure{font-size:14px;fill:#c4ceda}
+      .box{fill:#111d2b;stroke:#34475c;stroke-width:1.5}.current{fill:#132331;stroke:#56d7e5;stroke-width:2}.future{fill:#151923;stroke:#8b759e;stroke-width:2;stroke-dasharray:8 7}.training{fill:#211b19;stroke:#d99c3e;stroke-width:2}.failureBox{fill:#171c27;stroke:#4a3842;stroke-width:1.5}.land{fill:#0f1a27;stroke:#2c4053;stroke-width:1.5}
+    </style>
+  </defs>
+  <rect width="1800" height="1320" fill="url(#bg)"/>
+  <path d="M0 116H1800M0 1120H1800" stroke="#263548"/>
+  <text x="72" y="70" class="sans title">One request. The complete Generative AI machine.</text>
+  <text x="72" y="103" class="sans sub">Follow “make this image move” through training, inference, failure, and the wider landscape.</text>
+
+  <!-- Build lane -->
+  <rect x="62" y="155" width="470" height="825" rx="22" fill="#0b1420" stroke="#3c332a" stroke-width="2"/>
+  <text x="92" y="198" class="mono eyebrow" fill="#f4b84a">HOW THE MACHINE WAS BUILT</text>
+  <text x="92" y="230" class="sans laneTitle" fill="#f4f7fb">The learning journey</text>
+  <text x="92" y="258" class="sans boxSub">Many examples shape reusable machinery before our request arrives.</text>
+
+  <g>
+    <rect x="102" y="305" width="390" height="88" rx="14" class="training"/>
+    <text x="128" y="340" class="sans boxTitle">1 · Data and examples</text>
+    <text x="128" y="368" class="sans boxSub">Images, captions, videos, motion, cameras</text>
+    <path d="M297 397V425" stroke="#f4b84a" stroke-width="3" marker-end="url(#arrowA)"/>
+    <rect x="102" y="435" width="390" height="94" rx="14" class="training"/>
+    <text x="128" y="470" class="sans boxTitle">2 · Objectives and loss</text>
+    <text x="128" y="498" class="sans boxSub">Turn selected mistakes into training signals</text>
+    <path d="M297 533V561" stroke="#f4b84a" stroke-width="3" marker-end="url(#arrowA)"/>
+    <rect x="102" y="571" width="390" height="94" rx="14" class="training"/>
+    <text x="128" y="606" class="sans boxTitle">3 · Backpropagation + optimizer</text>
+    <text x="128" y="634" class="sans boxSub">Assign responsibility and update parameters</text>
+    <path d="M297 669V697" stroke="#f4b84a" stroke-width="3" marker-end="url(#arrowA)"/>
+    <rect x="102" y="707" width="390" height="94" rx="14" class="training"/>
+    <text x="128" y="742" class="sans boxTitle">4 · Scale and adaptation</text>
+    <text x="128" y="770" class="sans boxSub">Compute, pretraining, fine-tuning, feedback</text>
+    <path d="M297 805V833" stroke="#f4b84a" stroke-width="3" marker-end="url(#arrowA)"/>
+    <rect x="102" y="843" width="390" height="98" rx="14" fill="#261f24" stroke="#d69cf7" stroke-width="2.5" filter="url(#glow)"/>
+    <text x="128" y="881" class="sans boxTitle">TRAINED FOUNDATION MODEL</text>
+    <text x="128" y="910" class="sans boxSub">Learned encoders, priors, dynamics, decoders</text>
+  </g>
+
+  <!-- Connection -->
+  <path d="M492 892C560 892 557 250 625 250" fill="none" stroke="url(#build)" stroke-width="4" marker-end="url(#arrowA)"/>
+  <text x="537" y="570" class="mono tiny" transform="rotate(-90 537 570)">PARAMETERS CREATED DURING TRAINING</text>
+
+  <!-- Request lane -->
+  <rect x="600" y="155" width="700" height="825" rx="22" fill="#0b1420" stroke="#244657" stroke-width="2"/>
+  <text x="630" y="198" class="mono eyebrow" fill="#56d7e5">HOW THE MACHINE IS USED</text>
+  <text x="630" y="230" class="sans laneTitle" fill="#f4f7fb">The request journey</text>
+  <text x="630" y="258" class="sans boxSub">One image and instruction travel through the trained machinery.</text>
+
+  <g>
+    <rect x="640" y="294" width="280" height="90" rx="14" class="current"/>
+    <text x="666" y="329" class="sans boxTitle">IMAGE</text><text x="666" y="356" class="sans boxSub">This dog, field, light, viewpoint</text>
+    <rect x="950" y="294" width="310" height="90" rx="14" class="current"/>
+    <text x="976" y="329" class="sans boxTitle">INSTRUCTION + CONTROLS</text><text x="976" y="356" class="sans boxSub">Run · slow motion · camera follows</text>
+    <path d="M780 388V419" stroke="#56d7e5" stroke-width="3" marker-end="url(#arrowC)"/><path d="M1105 388V419" stroke="#56d7e5" stroke-width="3" marker-end="url(#arrowC)"/>
+    <rect x="640" y="429" width="280" height="88" rx="14" class="current"/>
+    <text x="666" y="463" class="sans boxTitle">Vision encoder</text><text x="666" y="490" class="sans boxSub">Pixels → visual representations</text>
+    <rect x="950" y="429" width="310" height="88" rx="14" class="current"/>
+    <text x="976" y="463" class="sans boxTitle">Text / control encoders</text><text x="976" y="490" class="sans boxSub">Tokens → contextual embeddings</text>
+    <path d="M780 521C780 555 860 560 900 580" fill="none" stroke="#56d7e5" stroke-width="3"/><path d="M1105 521C1105 555 1025 560 985 580" fill="none" stroke="#56d7e5" stroke-width="3"/>
+    <rect x="760" y="570" width="380" height="92" rx="14" class="future"/>
+    <text x="786" y="606" class="sans boxTitle">Alignment + selective interaction</text>
+    <text x="786" y="634" class="sans boxSub">Attention · cross-attention · Transformers</text>
+    <path d="M950 666V696" stroke="#56d7e5" stroke-width="3" marker-end="url(#arrowC)"/>
+    <rect x="760" y="706" width="380" height="92" rx="14" class="current"/>
+    <text x="786" y="742" class="sans boxTitle">Latent representation</text>
+    <text x="786" y="770" class="sans boxSub">Autoencoder / VAE · compact workspace</text>
+    <path d="M950 802V832" stroke="#56d7e5" stroke-width="3" marker-end="url(#arrowC)"/>
+    <rect x="630" y="842" width="200" height="92" rx="14" class="future"/>
+    <text x="655" y="877" class="sans boxTitle">Invent</text><text x="655" y="905" class="sans boxSub">Diffusion / flow</text>
+    <path d="M834 888H863" stroke="#56d7e5" stroke-width="3" marker-end="url(#arrowC)"/>
+    <rect x="873" y="842" width="200" height="92" rx="14" class="future"/>
+    <text x="898" y="877" class="sans boxTitle">Persist</text><text x="898" y="905" class="sans boxSub">Space + motion + time</text>
+    <path d="M1077 888H1106" stroke="#56d7e5" stroke-width="3" marker-end="url(#arrowC)"/>
+    <rect x="1116" y="842" width="144" height="92" rx="14" class="future"/>
+    <text x="1139" y="877" class="sans boxTitle">Reveal</text><text x="1139" y="905" class="sans boxSub">Decode frames</text>
+  </g>
+
+  <!-- Failure lane -->
+  <rect x="1330" y="155" width="408" height="825" rx="22" fill="#0b1420" stroke="#493441" stroke-width="2"/>
+  <text x="1360" y="198" class="mono eyebrow" fill="#f08ca6">READ FAILURE BACKWARD</text>
+  <text x="1360" y="230" class="sans laneTitle" fill="#f4f7fb">A debugging mental model</text>
+  <text x="1360" y="258" class="sans boxSub">Visible defects become questions about the stack.</text>
+  <g>
+    <rect x="1360" y="304" width="348" height="86" rx="12" class="failureBox"/><text x="1382" y="336" class="sans boxTitle">Identity changes</text><text x="1382" y="364" class="sans failure">representation · conditioning · persistence</text>
+    <rect x="1360" y="410" width="348" height="86" rx="12" class="failureBox"/><text x="1382" y="442" class="sans boxTitle">Dog barely moves</text><text x="1382" y="470" class="sans failure">alignment · guidance · motion generation</text>
+    <rect x="1360" y="516" width="348" height="86" rx="12" class="failureBox"/><text x="1382" y="548" class="sans boxTitle">Legs deform</text><text x="1382" y="576" class="sans failure">learned priors · space-time structure</text>
+    <rect x="1360" y="622" width="348" height="86" rx="12" class="failureBox"/><text x="1382" y="654" class="sans boxTitle">Background warps</text><text x="1382" y="682" class="sans failure">depth · geometry · occlusion · camera</text>
+    <rect x="1360" y="728" width="348" height="86" rx="12" class="failureBox"/><text x="1382" y="760" class="sans boxTitle">Tiny text mutates</text><text x="1382" y="788" class="sans failure">compression · generative reconstruction</text>
+    <rect x="1360" y="834" width="348" height="86" rx="12" class="failureBox"/><text x="1382" y="866" class="sans boxTitle">Beautiful frames flicker</text><text x="1382" y="894" class="sans failure">temporal attention · consistency</text>
+  </g>
+
+  <!-- Landscape band -->
+  <text x="72" y="1050" class="mono eyebrow" fill="#9fb0c4">THE WIDER LANDSCAPE — SHARED FOUNDATIONS, DIFFERENT OUTPUTS</text>
+  <g>
+    <rect x="72" y="1085" width="190" height="116" rx="14" class="land"/><text x="94" y="1124" class="sans boxTitle">Text</text><text x="94" y="1152" class="sans boxSub">tokens → language</text><text x="94" y="1176" class="mono tiny">LLMs</text>
+    <rect x="278" y="1085" width="190" height="116" rx="14" class="land"/><text x="300" y="1124" class="sans boxTitle">Image</text><text x="300" y="1152" class="sans boxSub">text/image → image</text><text x="300" y="1176" class="mono tiny">diffusion · flow</text>
+    <rect x="484" y="1085" width="220" height="116" rx="14" fill="#102a2f" stroke="#56d7e5" stroke-width="2.5"/><text x="506" y="1124" class="sans boxTitle">Video · our lens</text><text x="506" y="1152" class="sans boxSub">image/text → space-time</text><text x="506" y="1176" class="mono tiny">motion · persistence</text>
+    <rect x="720" y="1085" width="190" height="116" rx="14" class="land"/><text x="742" y="1124" class="sans boxTitle">Audio</text><text x="742" y="1152" class="sans boxSub">tokens → waveform</text><text x="742" y="1176" class="mono tiny">speech · music</text>
+    <rect x="926" y="1085" width="190" height="116" rx="14" class="land"/><text x="948" y="1124" class="sans boxTitle">3D</text><text x="948" y="1152" class="sans boxSub">views → structure</text><text x="948" y="1176" class="mono tiny">geometry · rendering</text>
+    <rect x="1132" y="1085" width="250" height="116" rx="14" class="land"/><text x="1154" y="1124" class="sans boxTitle">Multimodal models</text><text x="1154" y="1152" class="sans boxSub">shared representations</text><text x="1154" y="1176" class="mono tiny">see · read · hear · create</text>
+    <rect x="1398" y="1085" width="340" height="116" rx="14" class="land"/><text x="1420" y="1124" class="sans boxTitle">World models + embodied AI</text><text x="1420" y="1152" class="sans boxSub">predict states · choose actions</text><text x="1420" y="1176" class="mono tiny">perceive → plan → act</text>
+  </g>
+  <text x="72" y="1260" class="sans sub">Mental model: evidence enters → representations coordinate → a future is generated through time → pixels reappear → failures reveal weak links.</text>
+</svg>
